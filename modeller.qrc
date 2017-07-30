@@ -1,0 +1,13 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/new.png</file>
+    <file>images/open.png</file>
+    <file>images/save.png</file>
+    <file>images/saveas.png</file>
+    <file>images/exit.png</file>
+    <file>images/gallery.png</file>
+    <file>images/inspector.png</file>
+    <file>images/properties.png</file>
+    <file>DefaultStyle.json</file>
+</qresource>
+</RCC>
