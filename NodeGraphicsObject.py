@@ -193,11 +193,12 @@ class NodeGraphicsObject(QGraphicsObject, GraphicsObject):
             self.setCursor(QCursor())
         event.accept()
 
-    def mouseDoubleClickEvent(self, event):
-        QGraphicsItem.mouseDoubleClickEvent(self, event)
-        self._scene.nodeDoubleClicked(self._node)
+    # def mouseDoubleClickEvent(self, event):
+    #     QGraphicsItem.mouseDoubleClickEvent(self, event)
+    #     self._scene.nodeDoubleClicked(self._node)
 
     def onMoveSlot(self):
+        self._scene.setModified()
         self._scene.nodeMoved.emit(self._node, self.pos())
 
         

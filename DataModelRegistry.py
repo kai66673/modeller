@@ -9,8 +9,8 @@ class TypeConverterItem:
 
 class DataModelRegistry:
     def __init__(self):
-        self._registeredModelsCategory  = {}        # NodeDataModel to category map -> {NodeDataModel: str}
-        self._categories                = set()     # categories set {str, str}
+        self._registeredModelsCategory  = {}        # NodeDataModel to category map -> {(NodeDataModel, QIcon): str}
+        self._categories                = set()     # categories set -> {str}
         self._registeredModels          = {}        # node model name to NodeDataModel map -> {str: NodeDataModel}
         self._registeredTypeConverters  = {}        # type converters -> {(str, str): TypeConverterItem}
 

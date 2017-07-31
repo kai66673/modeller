@@ -112,3 +112,14 @@ class Connection(Serializable):
         elif portType == PortType.Out:
             self._outNode = None
             self._outPortIndex = -1
+
+    def toJson(self):
+        if self._inNode and self._outNode:
+            connectionJson = {
+                "in_id": str(self._inNode.id()),
+                "in_index": self._inPortIndex,
+                "out_id": str(self._outNode.id()),
+                "out_index": self._outPortIndex
+            }
+            return connectionJson
+        return None

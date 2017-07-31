@@ -27,6 +27,9 @@ class NodeDataModel(QObject, Serializable):
     def __init__(self, nodeStyle = None):
         self._nodeStyle = nodeStyle if nodeStyle else StyleCollection().nodeStyle()
 
+    def toJson(self):
+        return { "name": self.name() }
+
     def clone(self):
         raise NotImplementedError("Not implemented method NodeDataModel::clone")
 

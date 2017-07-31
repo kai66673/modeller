@@ -19,6 +19,23 @@ class Node(Serializable):
         # self._nodeGeometry.recalculateSize()
         # self._nodeDataModel.dataUpdated.connect(self.onDataUpdated)
 
+    def toJson(self):
+        return {
+            "id": str(self._id),
+            "model": self._nodeDataModel.toJson(),
+            "position": {
+                "x": self._nodeGraphicsObject.pos().x(),
+                "y": self._nodeGraphicsObject.pos().y()
+            }
+        }
+
+    def restoreFromJson(self, jsonObject):
+        self._id = uuid.UUID(jsonObject["id"])
+        point = QPointF(jsonObject["position"]["x"],
+                        jsonObject["position"]["y"])
+        self._nodeGraphicsObject.setPos(point)
+
+
     def save(self):
         nodeJson = {}
         nodeJson["id"] = self._id.toString()

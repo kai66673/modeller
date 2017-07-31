@@ -1,6 +1,7 @@
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QGraphicsScene, QTreeWidget, QTreeWidgetItem, QAbstractItemView)
-from PyQt5.QtCore import (QRectF, QUuid, pyqtSignal, QPointF, Qt, QMimeData, QSize)
+from PyQt5.QtWidgets import (QGraphicsScene, QTreeWidget, QTreeWidgetItem, QAbstractItemView, QMessageBox, QFileDialog)
+from PyQt5.QtCore import (QRectF, QUuid, pyqtSignal, QPointF, Qt, QMimeData, QSize, QDir, QFile, QJsonValue,
+                          QJsonDocument)
 
 from Components.IntegerSourceDataModel import IntegerSourceDataModel
 from Components.DecimalSourceDataModel import DecimalSourceDataModel
@@ -9,6 +10,7 @@ from Connection import Connection
 from ConnectionGraphicsObject import ConnectionGraphicsObject
 from ConnectionStyle import ConnectionStyle
 from DataModelRegistry import DataModelRegistry
+from GraphicsObjectType import GraphicsObject
 from Node import Node
 from NodeGraphicsObject import NodeGraphicsObject
 from NodeStyle import NodeStyle
@@ -16,6 +18,9 @@ from PortType import PortType
 from StyleCollection import StyleCollection
 
 import modeller_rcc
+
+import json
+import uuid
 
 
 class GalleryTreeWidget(QTreeWidget):
@@ -39,10 +44,12 @@ class GraphicsScene(QGraphicsScene):
 
     def __init__(self, galleryDock, parent=None):
         super(GraphicsScene, self).__init__(parent)
+        self._modified = False
+        self._fileName = ''
+
         self._galleryDock = galleryDock
         self.setSceneRect(QRectF(0, 0, 1500, 1500))
-        self._connections = dict()
-        self._nodes = dict()
+        self._connections = {}
         self._registry = DataModelRegistry()
 
         # default node style
@@ -81,6 +88,23 @@ class GraphicsScene(QGraphicsScene):
         # self.dataModel = NodeDataModel()
         # self.tttt = NodeGraphicsObject(self, Node(self.dataModel))
 
+    def toJson(self):
+        nodesJsonArray = []
+        connectionJsonArray = []
+        for item in self.items():
+            if item.type() == GraphicsObject.Type.Node:
+                nodesJsonArray.append(item.node().toJson())
+            elif item.type() == GraphicsObject.Type.Connection:
+                connectionJson = item.connection().toJson()
+                if connectionJson:
+                    connectionJsonArray.append(connectionJson)
+
+        sceneJson = {}
+        sceneJson["nodes"] = nodesJsonArray
+        sceneJson["connections"] = connectionJsonArray
+
+        return sceneJson
+
     def registry(self):
         return self._registry
 
@@ -88,6 +112,7 @@ class GraphicsScene(QGraphicsScene):
         n = Node(dataModel.clone())
         ngo = NodeGraphicsObject(self, n)
         n.setGraphicsObject(ngo)
+        self.setModified()
         return n
 
     def createConnection(self, node, portIndex, portType, node1 = None, portIndex1 = -1):
@@ -95,9 +120,10 @@ class GraphicsScene(QGraphicsScene):
         cgo = ConnectionGraphicsObject(self, connection)
         if portType == PortType.Invalid:
             node.nodeState().setConnection(PortType.In, portIndex, connection)
-            node.nodeState().setConnection(PortType.Out, portIndex1, connection)
+            node1.nodeState().setConnection(PortType.Out, portIndex1, connection)
         connection.setGraphicsObject(cgo)
         self._connections[connection.id()] = connection
+        self.setModified()
         return connection
 
     def deleteConnection(self, connection):
@@ -105,4 +131,116 @@ class GraphicsScene(QGraphicsScene):
         connection.removeFromNodes()
         c = self._connections[connection.id()]
         self.removeItem(c.getConnectionGraphicsObject())
+        self.setModified()
         del self._connections[connection.id()]
+
+    def clearScene(self):
+        self.clear()
+        self._connections = {}
+
+    def setModified(self, modified = True):
+        self._modified = modified
+
+    def newDocument(self, mainWindow):
+        if not self._mayBeSave(mainWindow):
+            return False
+
+        self.clearScene()
+        self._modified = False
+        self._fileName = ''
+        return True
+
+    def openDocument(self, mainWindow):
+        if not self._mayBeSave(mainWindow):
+            return False
+
+        fileName = QFileDialog.getOpenFileName(mainWindow,
+                                               "Open dataflow Scene",
+                                               QDir.homePath(),
+                                               "Flow Scene Files (*.flow)")[0]
+        if len(fileName) == 0:
+            return False
+
+        try:
+            jsonDocument = json.load(open(fileName))
+
+            self.clearScene()
+            self._modified = False
+            self._fileName = fileName
+
+            nodes = {}
+            for nodeJson in jsonDocument["nodes"]:
+                modelName = nodeJson["model"]["name"]
+                nodeModel = self.registry().create(modelName)
+                if not nodeModel:
+                    raise "Expected node model named as \"{0}\"".format(modelName)
+                node = Node(nodeModel.clone())
+                ngo = NodeGraphicsObject(self, node)
+                node.setGraphicsObject(ngo)
+                node.restoreFromJson(nodeJson)
+                nodes[node.id()] = node
+
+            for connectionJson in jsonDocument["connections"]:
+                nodeInId = uuid.UUID(connectionJson["in_id"])
+                nodeOutId = uuid.UUID(connectionJson["out_id"])
+                portIndexIn = connectionJson["in_index"]
+                portIndexOut = connectionJson["out_index"]
+                nodeIn = nodes.get(nodeInId)
+                nodeOut = nodes.get(nodeOutId)
+                if nodeIn and nodeOut:
+                    self.createConnection(nodeIn, portIndexIn, PortType.Invalid, nodeOut, portIndexOut)
+
+        except:
+            QMessageBox.warning(mainWindow, mainWindow.applicationName(),
+                                "Loading dataflow Scene from file \"{0}\" failed".format(fileName))
+            return False
+
+        return True
+
+    def saveDocument(self, mainWindow):
+        if len(self._fileName) == 0:
+            fileName = QFileDialog.getSaveFileName(mainWindow,
+                                                   "Save dataflow Scene",
+                                                   QDir.homePath(),
+                                                   "Flow Scene Files (*.flow)")[0]
+            if len(fileName) == 0:
+                return False
+            return self._saveTo(fileName, mainWindow)
+        return self._saveTo(self._fileName, mainWindow)
+
+    def saveDocumentAs(self, mainWindow):
+        fileName = QFileDialog.getSaveFileName(mainWindow,
+                                               "Save dataflow Scene",
+                                               QDir.homePath(),
+                                               "Flow Scene Files (*.flow)")[0]
+        if len(fileName) == 0:
+            return False
+        return self._saveTo(fileName, mainWindow)
+
+    def _mayBeSave(self, mainWindow):
+        if not self._modified:
+            return True
+
+        ret = QMessageBox.warning(mainWindow, mainWindow.applicationName(),
+                                  "Data was Changed.\nSave Changes?",
+                                  QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+        if ret == QMessageBox.Discard:
+            return True
+        elif ret == QMessageBox.Save:
+            return self.saveDocument(mainWindow)
+
+        return False
+
+    def _saveTo(self, fileName, mainWindow):
+        try:
+            with open(fileName, "w") as file:
+                json.dump(self.toJson(), file, indent = 2)
+        except:
+            QMessageBox.warning(mainWindow, mainWindow.applicationName,
+                                "Saving dataflow Scene to file \"{0}\" failed".format(fileName))
+            return False
+
+        self._fileName = fileName
+        self._modified = False
+        return True
+

@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         
         self.settings = QSettings("QxAdvice",  "Modeller")
         self.readSettings()
-        
+
     def closeEvent(self, event):
         self.writeSettings()
         super(MainWindow, self).closeEvent(event)
@@ -126,15 +126,18 @@ class MainWindow(QMainWindow):
         toggleAct.setToolTip("Toggle visability properties dock")
         toggleAct.setStatusTip("Toggle visability properties dock")
         self.docksToolBar.addAction(toggleAct)
+
+    def applicationName(self):
+        return "Modeller"
     
     def newFile(self):
-        pass
+        self.scene.newDocument(self)
         
     def openFile(self):
-        pass
+        self.scene.openDocument(self)
         
     def saveFile(self):
-        pass
+        self.scene.saveDocument(self)
         
     def saveFileAs(self):
-        pass
+        self.scene.saveDocumentAs(self)
