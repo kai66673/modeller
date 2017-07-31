@@ -14,9 +14,9 @@ class DataModelRegistry:
         self._registeredModels          = {}        # node model name to NodeDataModel map -> {str: NodeDataModel}
         self._registeredTypeConverters  = {}        # type converters -> {(str, str): TypeConverterItem}
 
-    def registerModel(self, category, model, isConvertor = False):
+    def registerModel(self, category, icon, model, isConvertor = False):
         self._categories.add(category)
-        self._registeredModelsCategory[model] = category
+        self._registeredModelsCategory[(model, icon)] = category
         self._registeredModels[model.name()] = model
 
         if isConvertor:

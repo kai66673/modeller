@@ -8,6 +8,9 @@
     <file>images/gallery.png</file>
     <file>images/inspector.png</file>
     <file>images/properties.png</file>
+    <file>Components/images/int_src.png</file>
+    <file>Components/images/dec_src.png</file>
+    <file>Components/images/mod_node.png</file>
     <file>DefaultStyle.json</file>
 </qresource>
 </RCC>

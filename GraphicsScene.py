@@ -1,5 +1,6 @@
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QGraphicsScene, QTreeWidget, QTreeWidgetItem, QAbstractItemView)
-from PyQt5.QtCore import (QRectF, QUuid, pyqtSignal, QPointF, Qt, QMimeData)
+from PyQt5.QtCore import (QRectF, QUuid, pyqtSignal, QPointF, Qt, QMimeData, QSize)
 
 from Components.IntegerSourceDataModel import IntegerSourceDataModel
 from Components.DecimalSourceDataModel import DecimalSourceDataModel
@@ -13,6 +14,9 @@ from NodeGraphicsObject import NodeGraphicsObject
 from NodeStyle import NodeStyle
 from PortType import PortType
 from StyleCollection import StyleCollection
+
+import modeller_rcc
+
 
 class GalleryTreeWidget(QTreeWidget):
     def __init__(self, parent = None):
@@ -50,14 +54,15 @@ class GraphicsScene(QGraphicsScene):
         StyleCollection().setConnectionStyle(self.connectionStyoe)
 
         # fill gallery
-        self._registry.registerModel("Operations", ModuloModel())
-        self._registry.registerModel("Sources", IntegerSourceDataModel())
-        self._registry.registerModel("Sources", DecimalSourceDataModel())
+        self._registry.registerModel("Operations", QIcon(':Components/images/mod_node.png'), ModuloModel())
+        self._registry.registerModel("Sources", QIcon(':Components/images/int_src.png'), IntegerSourceDataModel())
+        self._registry.registerModel("Sources", QIcon(':Components/images/dec_src.png'), DecimalSourceDataModel())
 
         # create gallery Tree
         treeView =  GalleryTreeWidget()
         treeView.header().close()
         treeView.setDragDropMode(QAbstractItemView.DragOnly)
+        treeView.setIconSize(QSize(32, 32))
         topLevelItems = {}
         for category in self._registry.categories():
             item =  QTreeWidgetItem(treeView)
@@ -66,8 +71,9 @@ class GraphicsScene(QGraphicsScene):
         for k, v in self._registry.registeredModelsCategoryAssociation().items():
             parent = topLevelItems[v]
             item =  QTreeWidgetItem(parent)
-            item.setText(0, k.caption())
-            item.setData(0, Qt.UserRole, k.name())
+            item.setText(0, k[0].caption())
+            item.setData(0, Qt.UserRole, k[0].name())
+            item.setIcon(0, k[1])
         treeView.expandAll()
         self._galleryDock.setWidget(treeView)
 
