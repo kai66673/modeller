@@ -96,6 +96,7 @@ class GraphicsScene(QGraphicsScene):
 
     def deleteConnection(self, connection):
         # self.connectionDeleted(connection)
-        # connection.removeFromNodes()
-        # del self._connections[connection.id()]
-        pass
+        connection.removeFromNodes()
+        c = self._connections[connection.id()]
+        self.removeItem(c.getConnectionGraphicsObject())
+        del self._connections[connection.id()]

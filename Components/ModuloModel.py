@@ -1,12 +1,11 @@
 from Components.IntegerData import IntegerData
 from NodeDataModel import NodeDataModel, NodeValidationState
 from PortType import PortType
-from StyleCollection import StyleCollection
 
 
 class ModuloModel(NodeDataModel):
     def __init__(self):
-        super(ModuloModel, self).__init__(StyleCollection().nodeStyle())
+        super(ModuloModel, self).__init__()
         self._number1 = None
         self._number2 = None
         self._result = None

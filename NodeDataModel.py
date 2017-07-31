@@ -5,6 +5,9 @@ from Serializable import Serializable
 
 from enum import Enum
 
+from StyleCollection import StyleCollection
+
+
 class ConnectionPolicy(Enum):
     One = 0
     Many = 1
@@ -22,7 +25,7 @@ class NodeDataModel(QObject, Serializable):
     computingFinished = pyqtSignal()
 
     def __init__(self, nodeStyle = None):
-        self._nodeStyle = nodeStyle
+        self._nodeStyle = nodeStyle if nodeStyle else StyleCollection().nodeStyle()
 
     def clone(self):
         raise NotImplementedError("Not implemented method NodeDataModel::clone")

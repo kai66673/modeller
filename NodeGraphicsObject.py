@@ -71,7 +71,7 @@ class NodeGraphicsObject(QGraphicsObject, GraphicsObject):
     def moveConnections(self):
         nodeState = self._node.nodeState()
 
-        connectionEntriesList = [nodeState.getEntries(PortType.In), nodeState.getEntries(PortType.In)]
+        connectionEntriesList = [nodeState.getEntries(PortType.In), nodeState.getEntries(PortType.Out)]
         for connectionEntries in connectionEntriesList:
             for connections in connectionEntries:
                 for c in connections.items():

@@ -55,6 +55,15 @@ class Connection(Serializable):
 
     def setGraphicsObject(self, graphics):
         self._connectionGraphicsObject = graphics
+        if self.requiredPort() != PortType.Invalid:
+            attachedPort = PortType.oppositePort(self.requiredPort())
+            attachedPortIndex = self.getPortIndex(attachedPort)
+            node = self.getNode(attachedPort)
+            nodeSceneTransform = node.nodeGraphicsObject().sceneTransform()
+            pos = node.nodeGeometry().portScenePosition(attachedPortIndex, attachedPort, nodeSceneTransform)
+            self._connectionGraphicsObject.setPos(pos)
+        self._connectionGraphicsObject.move()
+
 
     def dataType(self):
         if self._inNode:

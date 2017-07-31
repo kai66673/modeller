@@ -78,8 +78,8 @@ class Node(Serializable):
     def onDataUpdated(self, index):
         nodeData = self._nodeDataModel.outData(index)
         connections = self._nodeState.connections(PortType.Out, index)
-        for _, c in connections:
-            c.propagateData(nodeData)
+        for c in connections.items():
+            c[1].propagateData(nodeData)
 
     def reactToPossibleConnection(self, reactingPortType, reactingDataType, scenePoint):
         t = self._nodeGraphicsObject.sceneTransform()

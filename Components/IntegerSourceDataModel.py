@@ -4,12 +4,11 @@ from PyQt5.QtWidgets import QLineEdit
 from Components.IntegerData import IntegerData
 from NodeDataModel import NodeDataModel
 from PortType import PortType
-from StyleCollection import StyleCollection
 
 
 class IntegerSourceDataModel(NodeDataModel):
     def __init__(self):
-        super(IntegerSourceDataModel, self).__init__(StyleCollection().nodeStyle())
+        super(IntegerSourceDataModel, self).__init__()
         self._number = None
         self._lineEdit = QLineEdit()
         self._lineEdit.setValidator(QIntValidator())
