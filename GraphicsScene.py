@@ -45,24 +45,7 @@ class GalleryTreeWidget(QTreeWidget):
         if not nodeModel:
             return
 
-        tempGeom = NodeGeometry(nodeModel)
-        tempGeom.recalculateSizeForFont(self._scene.font())
-
-        nodeStyle = nodeModel.nodeStyle()
-        diam = nodeStyle.ConnectionPointDiameter
-        pixmap = QPixmap(tempGeom.width() + 2 * diam + 1, tempGeom.height() + 2 * diam + 1)
-        painter = QPainter()
-        painter.begin(pixmap)
-        NodePainter.drawDragRect(painter, tempGeom, nodeModel)
-        painter.end()
-
-        mime = QMimeData()
-        mime.setData('application/x-modeller-nodemodel', str.encode(nodeModelName))
-        drag = QDrag(self)
-        drag.setMimeData(mime)
-        drag.setPixmap(pixmap)
-        drag.setHotSpot(QPoint(diam, diam))
-        drag.exec_()
+        self._scene.startDragNode(nodeModel)
 
 class GraphicsScene(QGraphicsScene):
     nodeMoved = pyqtSignal(Node, QPointF)
@@ -115,9 +98,26 @@ class GraphicsScene(QGraphicsScene):
         treeView.expandAll()
         self._galleryDock.setWidget(treeView)
 
-        # testing
-        # self.dataModel = NodeDataModel()
-        # self.tttt = NodeGraphicsObject(self, Node(self.dataModel))
+    def startDragNode(self, nodeModel, isCopy = False):
+        tempGeom = NodeGeometry(nodeModel)
+        tempGeom.recalculateSizeForFont(self.font())
+
+        nodeStyle = nodeModel.nodeStyle()
+        diam = nodeStyle.ConnectionPointDiameter
+        pixmap = QPixmap(tempGeom.width() + 2 * diam + 1, tempGeom.height() + 2 * diam + 1)
+        painter = QPainter()
+        painter.begin(pixmap)
+        NodePainter.drawDragRect(painter, tempGeom, nodeModel)
+        painter.end()
+
+        mime = QMimeData()
+        mime.setData('application/x-modeller-nodemodel', str.encode(nodeModel.name()))
+        drag = QDrag(self)
+        drag.setMimeData(mime)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(QPoint(diam, diam))
+        dragAction = Qt.CopyAction if isCopy else Qt.MoveAction
+        drag.exec_(dragAction)
 
     def toJson(self):
         nodesJsonArray = []

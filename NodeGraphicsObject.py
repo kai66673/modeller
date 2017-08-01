@@ -134,6 +134,11 @@ class NodeGraphicsObject(QGraphicsObject, GraphicsObject):
         geom = self._node.nodeGeometry()
         state = self._node.nodeState()
 
+        if event.modifiers() == Qt.AltModifier:
+            event.ignore()
+            self._scene.startDragNode(self.node().nodeDataModel(), True)
+            return
+
         if state.resizing():
             diff = event.pos() - event.lastPos()
             w = self._node.nodeDataModel().embeddedWidget()

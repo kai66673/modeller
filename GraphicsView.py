@@ -1,10 +1,12 @@
 from PyQt5.QtWidgets import QGraphicsView, QAction
-from PyQt5.QtGui import (QColor, QPen)
-from PyQt5.QtCore import (Qt, QLineF)
+from PyQt5.QtGui import (QColor, QPen, QPixmap, QPainter, QDrag)
+from PyQt5.QtCore import (Qt, QLineF, QMimeData, QPoint)
 
 import math
 
 from GraphicsObjectType import GraphicsObject
+from NodeGeometry import NodeGeometry
+from NodePainter import NodePainter
 
 
 class GraphicsView(QGraphicsView):
@@ -15,6 +17,7 @@ class GraphicsView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setAcceptDrops(True)
+        self._copyNodeMode = False
 
         self._clearSelectionAction = QAction("Clear Selection", self,
                                              shortcut=Qt.Key_Escape,
