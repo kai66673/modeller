@@ -1,8 +1,11 @@
-from PyQt5.QtWidgets import QGraphicsView
+from PyQt5.QtWidgets import QGraphicsView, QAction
 from PyQt5.QtGui import (QColor, QPen)
 from PyQt5.QtCore import (Qt, QLineF)
 
 import math
+
+from GraphicsObjectType import GraphicsObject
+
 
 class GraphicsView(QGraphicsView):
     def __init__(self, scene, parent=None):
@@ -13,6 +16,15 @@ class GraphicsView(QGraphicsView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setAcceptDrops(True)
 
+        self._clearSelectionAction = QAction("Clear Selection", self,
+                                             shortcut=Qt.Key_Escape,
+                                             triggered=self.scene().clearSelection)
+        self._deleteSelectionAction = QAction("Delete Selection", self,
+                                              shortcut=Qt.Key_Delete,
+                                              triggered=self.deleteSelectedNodes)
+        self.addAction(self._clearSelectionAction)
+        self.addAction(self._deleteSelectionAction)
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
             event.setAccepted(True)
@@ -20,13 +32,12 @@ class GraphicsView(QGraphicsView):
 
     def dropEvent(self, event):
         event.acceptProposedAction()
-        nodeType = self.scene().registry().create(event.mimeData().text())
-        if nodeType:
-            node = self.scene().createNode(nodeType)
+        nodeDataModel = self.scene().registry().nodeDataModel(event.mimeData().text())
+        if nodeDataModel:
+            node = self.scene().createNode(nodeDataModel)
             pos = event.pos()
             posView = self.mapToScene(pos)
             node.nodeGraphicsObject().setPos(posView)
-
 
     def dragMoveEvent(self, event):
         pass
@@ -84,3 +95,11 @@ class GraphicsView(QGraphicsView):
         self._drawGrid(painter, 8)
         painter.setPen(QPen(QColor(25, 25, 25),  1.0))
         self._drawGrid(painter, 80)
+
+    def deleteSelectedNodes(self):
+        for item in self.scene().selectedItems():
+            if item.type() == GraphicsObject.Type.Node:
+                self.scene().removeNode(item.node())
+
+        for item in self.scene().selectedItems():
+            self.scene().deleteConnection(item.connection())

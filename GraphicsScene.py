@@ -3,9 +3,12 @@ from PyQt5.QtWidgets import (QGraphicsScene, QTreeWidget, QTreeWidgetItem, QAbst
 from PyQt5.QtCore import (QRectF, QUuid, pyqtSignal, QPointF, Qt, QMimeData, QSize, QDir, QFile, QJsonValue,
                           QJsonDocument)
 
+from Components.DecimalToIntegerConverterDataModel import DecimalToIntegerConverterDataModel
 from Components.IntegerSourceDataModel import IntegerSourceDataModel
 from Components.DecimalSourceDataModel import DecimalSourceDataModel
+from Components.IntegerToDecimalConverterDataModel import IntegerToDecimalConverterDataModel
 from Components.ModuloModel import ModuloModel
+from Components.MultiplicationModel import MultiplicationModel
 from Connection import Connection
 from ConnectionGraphicsObject import ConnectionGraphicsObject
 from ConnectionStyle import ConnectionStyle
@@ -62,8 +65,13 @@ class GraphicsScene(QGraphicsScene):
 
         # fill gallery
         self._registry.registerModel("Operations", QIcon(':Components/images/mod_node.png'), ModuloModel())
+        self._registry.registerModel("Operations", QIcon(':Components/images/mul_node.png'), MultiplicationModel())
         self._registry.registerModel("Sources", QIcon(':Components/images/int_src.png'), IntegerSourceDataModel())
         self._registry.registerModel("Sources", QIcon(':Components/images/dec_src.png'), DecimalSourceDataModel())
+        self._registry.registerModel("Converters", QIcon(':Components/images/dec_int_cnv.png'),
+                                     DecimalToIntegerConverterDataModel(), True)
+        self._registry.registerModel("Converters", QIcon(':Components/images/int_dec_cnv.png'),
+                                     IntegerToDecimalConverterDataModel(), True)
 
         # create gallery Tree
         treeView =  GalleryTreeWidget()
@@ -134,6 +142,14 @@ class GraphicsScene(QGraphicsScene):
         self.setModified()
         del self._connections[connection.id()]
 
+    def removeNode(self, node):
+        for nodeEntries in [node.nodeState().getEntries(PortType.In), node.nodeState().getEntries(PortType.Out)]:
+            for connections in nodeEntries:
+                cc = [connection[1] for connection in connections.items()]
+                for c in cc:
+                    self.deleteConnection(c)
+        self.removeItem(node.nodeGraphicsObject())
+
     def clearScene(self):
         self.clear()
         self._connections = {}
@@ -171,7 +187,7 @@ class GraphicsScene(QGraphicsScene):
             nodes = {}
             for nodeJson in jsonDocument["nodes"]:
                 modelName = nodeJson["model"]["name"]
-                nodeModel = self.registry().create(modelName)
+                nodeModel = self.registry().nodeDataModel(modelName)
                 if not nodeModel:
                     raise "Expected node model named as \"{0}\"".format(modelName)
                 node = Node(nodeModel.clone())
@@ -189,6 +205,8 @@ class GraphicsScene(QGraphicsScene):
                 nodeOut = nodes.get(nodeOutId)
                 if nodeIn and nodeOut:
                     self.createConnection(nodeIn, portIndexIn, PortType.Invalid, nodeOut, portIndexOut)
+
+            self._modified = False
 
         except:
             QMessageBox.warning(mainWindow, mainWindow.applicationName(),
@@ -230,6 +248,9 @@ class GraphicsScene(QGraphicsScene):
             return self.saveDocument(mainWindow)
 
         return False
+
+    def applicationAboutToClose(self, mainWindow):
+        return self._mayBeSave(mainWindow)
 
     def _saveTo(self, fileName, mainWindow):
         try:

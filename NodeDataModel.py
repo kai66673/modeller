@@ -85,6 +85,6 @@ class NodeDataModel(QObject, Serializable):
         self._nodeStyle = nodeStyle
 
     def isValidTypeConvertor(self):
-        return self.nPorts(PortType.In) == 1\
-               and self.nPorts(PortType.Out) == 1\
-               and self.dataType(PortType.In, 0).id != self.dataType(PortType.Out, 0).id
+        return self.nPorts(PortType.In) == 1 and\
+               self.nPorts(PortType.Out) == 1 and\
+               self.dataType(PortType.In, 0).id != self.dataType(PortType.Out, 0).id

@@ -35,24 +35,6 @@ class Node(Serializable):
                         jsonObject["position"]["y"])
         self._nodeGraphicsObject.setPos(point)
 
-
-    def save(self):
-        nodeJson = {}
-        nodeJson["id"] = self._id.toString()
-        nodeJson["model"] = self._nodeDataModel.save()
-        pos = {}
-        pos["x"] = self._nodeGraphicsObject.pos().x()
-        pos["y"] = self._nodeGraphicsObject.pos().y()
-        nodeJson["position"] = pos
-        return nodeJson
-
-    def restore(self, json):
-        self._id = QUuid(json["id"].toString())
-        positionJson = json["position"].toObject()
-        point = QPointF(positionJson["x"].toDouble(), positionJson["y"].toDouble())
-        self._nodeGraphicsObject.setPos(point)
-        self._nodeDataModel.restore(json["model"].toObject())
-
     def id(self):
         return self._id
 

@@ -40,8 +40,11 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.writeSettings()
-        super(MainWindow, self).closeEvent(event)
-        
+        if self.scene.applicationAboutToClose(self):
+            event.accept()
+        else:
+            event.ignore()
+
     def readSettings(self):
         self.settings.beginGroup("MainWindow")
         self.restoreGeometry(self.settings.value("geometry", QByteArray()))

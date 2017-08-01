@@ -61,8 +61,8 @@ class NodeConnectionInteraction:
             converterNode.nodeGraphicsObject().setPos(converterNodePos)
 
             if requiredPort == PortType.In:
-                self._scene.createConnection(converterNode, 0, outNode, outNodePortIndex)
-                self._scene.createConnection(self._node, portIndex, converterNode, 0)
+                self._scene.createConnection(converterNode, 0, PortType.Invalid, outNode, outNodePortIndex)
+                self._scene.createConnection(self._node, portIndex, PortType.Invalid, converterNode, 0)
             else:
                 self._scene.createConnection(converterNode, 0, self._node, portIndex)
                 self._scene.createConnection(outNode, outNodePortIndex, converterNode, 0)

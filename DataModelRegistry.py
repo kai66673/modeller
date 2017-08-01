@@ -30,5 +30,9 @@ class DataModelRegistry:
     def registeredModelsCategoryAssociation(self):
         return self._registeredModelsCategory
 
-    def create(self, modelName):
+    def nodeDataModel(self, modelName):
         return self._registeredModels.get(modelName)
+
+    def getTypeConverter(self, sourceTypeId, destTypeId):
+        converter = self._registeredTypeConverters.get((sourceTypeId, destTypeId))
+        return converter.Model.clone() if converter else None
