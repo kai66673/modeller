@@ -1,7 +1,7 @@
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QDrag, QPixmap, QPainter
 from PyQt5.QtWidgets import (QGraphicsScene, QTreeWidget, QTreeWidgetItem, QAbstractItemView, QMessageBox, QFileDialog)
 from PyQt5.QtCore import (QRectF, QUuid, pyqtSignal, QPointF, Qt, QMimeData, QSize, QDir, QFile, QJsonValue,
-                          QJsonDocument)
+                          QJsonDocument, QPoint)
 
 from Components.DecimalToIntegerConverterDataModel import DecimalToIntegerConverterDataModel
 from Components.IntegerSourceDataModel import IntegerSourceDataModel
@@ -15,7 +15,9 @@ from ConnectionStyle import ConnectionStyle
 from DataModelRegistry import DataModelRegistry
 from GraphicsObjectType import GraphicsObject
 from Node import Node
+from NodeGeometry import NodeGeometry
 from NodeGraphicsObject import NodeGraphicsObject
+from NodePainter import NodePainter
 from NodeStyle import NodeStyle
 from PortType import PortType
 from StyleCollection import StyleCollection
@@ -27,19 +29,40 @@ import uuid
 
 
 class GalleryTreeWidget(QTreeWidget):
-    def __init__(self, parent = None):
+    def __init__(self, scene, parent = None):
         super(GalleryTreeWidget, self).__init__(parent)
+        self._scene = scene
 
-    def mimeTypes(self):
-        return ["text/plain"]
+    def startDrag(self, *args, **kwargs):
+        items = self.selectedItems()
+        if len(items) == 0:
+            return
 
-    def mimeData(self, Iterable, QTreeWidgetItem=None):
-        nodeModelName = Iterable[0].data(0, Qt.UserRole)
-        if nodeModelName:
-            result = QMimeData()
-            result.setText(nodeModelName)
-            return result
-        return None
+        nodeModelName = items[0].data(0, Qt.UserRole)
+        if not nodeModelName:
+            return
+        nodeModel = self._scene.registry().nodeDataModel(nodeModelName)
+        if not nodeModel:
+            return
+
+        tempGeom = NodeGeometry(nodeModel)
+        tempGeom.recalculateSizeForFont(self._scene.font())
+
+        nodeStyle = nodeModel.nodeStyle()
+        diam = nodeStyle.ConnectionPointDiameter
+        pixmap = QPixmap(tempGeom.width() + 2 * diam + 1, tempGeom.height() + 2 * diam + 1)
+        painter = QPainter()
+        painter.begin(pixmap)
+        NodePainter.drawDragRect(painter, tempGeom, nodeModel)
+        painter.end()
+
+        mime = QMimeData()
+        mime.setData('application/x-modeller-nodemodel', str.encode(nodeModelName))
+        drag = QDrag(self)
+        drag.setMimeData(mime)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(QPoint(diam, diam))
+        drag.exec_()
 
 class GraphicsScene(QGraphicsScene):
     nodeMoved = pyqtSignal(Node, QPointF)
@@ -74,7 +97,7 @@ class GraphicsScene(QGraphicsScene):
                                      IntegerToDecimalConverterDataModel(), True)
 
         # create gallery Tree
-        treeView =  GalleryTreeWidget()
+        treeView =  GalleryTreeWidget(self)
         treeView.header().close()
         treeView.setDragDropMode(QAbstractItemView.DragOnly)
         treeView.setIconSize(QSize(32, 32))

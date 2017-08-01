@@ -37,6 +37,42 @@ class NodePainter:
         painter.drawRoundedRect(boundary, radius, radius)
 
     @staticmethod
+    def drawDragRect(painter, geom, model):
+        nodeStyle = model.nodeStyle()
+        color = nodeStyle.SelectedBoundaryColor
+
+        p = QPen(color, nodeStyle.PenWidth)
+        painter.setPen(p)
+        gradient = QLinearGradient(QPointF(0.0, 0.0),
+                                   QPointF(2.0, geom.height()))
+        gradient.setColorAt(0.0, nodeStyle.GradientColor0)
+        gradient.setColorAt(0.03, nodeStyle.GradientColor1)
+        gradient.setColorAt(0.97, nodeStyle.GradientColor2)
+        gradient.setColorAt(1.0, nodeStyle.GradientColor3)
+        painter.setBrush(gradient)
+
+        diam = nodeStyle.ConnectionPointDiameter
+        boundary = QRectF( 0.0, 0.0, 2.0 * diam + geom.width(), 2.0 * diam + geom.height())
+        radius = 3.0
+        painter.drawRoundedRect(boundary, radius, radius)
+
+        name = model.caption()
+        f = painter.font()
+        f.setBold(True)
+        metrics = QFontMetrics(f)
+
+        rect = metrics.boundingRect(name)
+        position = QPointF(diam + (geom.width() - rect.width()) / 2.0,
+                           diam + (geom.spacing() + geom.entryHeight()) / 3.0)
+
+        painter.setFont(f)
+        painter.setPen(nodeStyle.FontColor)
+        painter.drawText(position, name)
+
+        f.setBold(False)
+        painter.setFont(f)
+
+    @staticmethod
     def drawConnectionPoints(painter, geom, state, model, scene):
         nodeStyle = StyleCollection().nodeStyle()
         diameter = nodeStyle.ConnectionPointDiameter

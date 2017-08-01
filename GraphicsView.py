@@ -26,18 +26,21 @@ class GraphicsView(QGraphicsView):
         self.addAction(self._deleteSelectionAction)
 
     def dragEnterEvent(self, event):
-        if event.mimeData().hasText():
+        if event.mimeData().hasFormat('application/x-modeller-nodemodel'):
             event.setAccepted(True)
             self.update()
 
     def dropEvent(self, event):
         event.acceptProposedAction()
-        nodeDataModel = self.scene().registry().nodeDataModel(event.mimeData().text())
+        ba = event.mimeData().data('application/x-modeller-nodemodel')
+        nodeDataModel = self.scene().registry().nodeDataModel(bytes(ba).decode())
         if nodeDataModel:
             node = self.scene().createNode(nodeDataModel)
             pos = event.pos()
             posView = self.mapToScene(pos)
             node.nodeGraphicsObject().setPos(posView)
+            self.scene().clearSelection()
+            node.nodeGraphicsObject().setSelected(True)
 
     def dragMoveEvent(self, event):
         pass
