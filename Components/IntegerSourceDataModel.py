@@ -12,7 +12,9 @@ class IntegerSourceDataModel(NodeDataModel):
         self._number = None
         self._lineEdit = QLineEdit()
         self._lineEdit.setValidator(QIntValidator())
-        self._lineEdit.setMaximumSize(self._lineEdit.sizeHint())
+        self._lineEdit.resize(self._lineEdit.sizeHint())
+        self._lineEdit.setMinimumSize(self._lineEdit.sizeHint())
+        self._lineEdit.setMaximumHeight(self._lineEdit.sizeHint().height())
         self._lineEdit.textChanged.connect(self.onTextEdited)
 
     def clone(self):

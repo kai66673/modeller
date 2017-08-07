@@ -1,7 +1,11 @@
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtSvg import QSvgWidget
+
 from Components.DecimalData import DecimalData
 from NodeDataModel import NodeDataModel, NodeValidationState
 from PortType import PortType
 
+import modeller_rcc
 
 class MultiplicationModel(NodeDataModel):
     def __init__(self):
@@ -10,6 +14,11 @@ class MultiplicationModel(NodeDataModel):
         self._result = None
         self.modelValidationState = NodeValidationState.Warning
         self.modelValidationError = "Missing or incorrect inputs"
+        self._svgWidget = QSvgWidget(":/Components/images/mul.svg")
+        defaultSize = QSize(36, 36)
+        self._svgWidget.resize(defaultSize)
+        self._svgWidget.setAttribute( Qt.WA_TranslucentBackground)
+        self._svgWidget.setMinimumSize(defaultSize)
 
     def clone(self):
         return MultiplicationModel()
@@ -54,7 +63,7 @@ class MultiplicationModel(NodeDataModel):
         self.emit.dataUpdated(0)
 
     def embeddedWidget(self):
-        return None
+        return self._svgWidget
 
     def validationState(self):
         return self.modelValidationState

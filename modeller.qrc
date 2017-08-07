@@ -14,6 +14,8 @@
     <file>Components/images/mul_node.png</file>
     <file>Components/images/dec_int_cnv.png</file>
     <file>Components/images/int_dec_cnv.png</file>
+    <file>Components/images/mul.svg</file>
+    <file>Components/images/mod.svg</file>
     <file>DefaultStyle.json</file>
 </qresource>
 </RCC>
