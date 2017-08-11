@@ -23,6 +23,7 @@ class MainWindow(QMainWindow):
         @type QWidget
         """
         super(MainWindow, self).__init__(parent)
+        self.setWindowTitle("Modeller")
         
         self.createActions()
         self.createMenu()
