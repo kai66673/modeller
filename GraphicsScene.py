@@ -280,7 +280,7 @@ class GraphicsScene(QGraphicsScene):
             with open(fileName, "w") as file:
                 json.dump(self.toJson(), file, indent = 2)
         except:
-            QMessageBox.warning(mainWindow, mainWindow.applicationName,
+            QMessageBox.warning(mainWindow, mainWindow.applicationName(),
                                 "Saving dataflow Scene to file \"{0}\" failed".format(fileName))
             return False
 
